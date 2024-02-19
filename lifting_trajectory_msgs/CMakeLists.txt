@@ -24,14 +24,8 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   LiftingTrajectory.msg
+  LiftingJointTrajectory.msg
 )
-
-#add_service_files(
-#  FILES
-#  GetJointPose.srv
-#  GetKinematicsPose.srv
-#  GetPreviewMatrix.srv
-#)
 
 generate_messages(
   DEPENDENCIES
