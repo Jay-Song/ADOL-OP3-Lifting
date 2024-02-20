@@ -19,7 +19,7 @@ void makeLiftingJointTrajectoryMessage(std::string &file_path);
 
 lifting_trajectory_msgs::LiftingTrajectory lifting_msg;
 lifting_trajectory_msgs::LiftingJointTrajectory lifting_joint_msg;
-ros::Publisher lifting_msg_pub_, lifting_cmd_pub_;
+ros::Publisher lifting_msg_pub_, lifting_joint_msg_pub_, lifting_cmd_pub_;
 ros::Publisher set_ctrl_module_pub_;
 
 int main(int argc, char **argv)
@@ -28,6 +28,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
 
   lifting_msg_pub_ = nh.advertise<lifting_trajectory_msgs::LiftingTrajectory>("/adol/lifting/trajectory", 0);
+  lifting_joint_msg_pub_ = nh.advertise<lifting_trajectory_msgs::LiftingJointTrajectory>("/adol/lifting/joint_trajectory", 0);
   lifting_cmd_pub_ = nh.advertise<std_msgs::String>("/adol/lifting/command", 0);
   set_ctrl_module_pub_ = nh.advertise<std_msgs::String>("/robotis/enable_ctrl_module", 1);
 
@@ -39,7 +40,7 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
-    std::cout << "[CMD]: " << std::endl;
+    std::cout << "[CMD]: " ;
     std::cin >> cmd;
 
     if (cmd == "exit")
@@ -48,6 +49,8 @@ int main(int argc, char **argv)
     {
       if (lifting_msg.right_shoulder_pitch.size() != 0)
         lifting_msg_pub_.publish(lifting_msg);
+      else if (lifting_joint_msg.right_shoulder_pitch.size() != 0)
+        lifting_joint_msg_pub_.publish(lifting_joint_msg);
       else
         std::cout << "there is no trajectory to send" << std::endl;
     }
