@@ -14,6 +14,7 @@
 
 #include "robotis_controller_msgs/StatusMsg.h"
 #include "lifting_trajectory_msgs/LiftingTrajectory.h"
+#include "lifting_trajectory_msgs/LiftingJointTrajectory.h"
 
 namespace adol
 {
@@ -42,9 +43,13 @@ private:
   void queueThread();
 
   void getLiftingTrajectoryCallback(const lifting_trajectory_msgs::LiftingTrajectory::ConstPtr& msg);
+  void getLiftingJointTrajectoryCallback(const lifting_trajectory_msgs::LiftingJointTrajectory::ConstPtr& msg);
   void getLiftingCommandCallback(const std_msgs::String::ConstPtr& msg);
   
   void getLiftingTrajectoryAngle(int trajectory_idx);
+  
+  void clearLiftingTrajectories();
+
 
   bool computeLegInverseKinematics(double *angle, Eigen::Matrix4d& transform);
   bool computeRLegInverseKinematics(double *angle, Eigen::Matrix4d& transform);
@@ -58,6 +63,7 @@ private:
 
   /*  */
   lifting_trajectory_msgs::LiftingTrajectory lifting_trajectory_;
+  lifting_trajectory_msgs::LiftingJointTrajectory lifting_joint_trajectory_;
 
   robotis_framework::FifthOrderPolynomialTrajectory poly_;
 

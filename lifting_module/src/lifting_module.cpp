@@ -224,6 +224,8 @@ void LiftingModule::queueThread()
   // Subscriber
   ros::Subscriber lifting_trajectory_sub = ros_node.subscribe("/adol/lifting/trajectory", 5,
                                                               &LiftingModule::getLiftingTrajectoryCallback, this);
+  ros::Subscriber lifting_joint_trajectory_sub = ros_node.subscribe("/adol/lifting/joint_trajectory", 5,
+                                                              &LiftingModule::getLiftingJointTrajectoryCallback, this);
   ros::Subscriber lifting_command_sub = ros_node.subscribe("/adol/lifting/command", 5,
                                                               &LiftingModule::getLiftingCommandCallback, this);
 
@@ -234,19 +236,12 @@ void LiftingModule::queueThread()
 
 void LiftingModule::getLiftingTrajectoryCallback(const lifting_trajectory_msgs::LiftingTrajectory::ConstPtr &msg)
 {
-  lifting_trajectory_.right_shoulder_pitch.clear();
-  lifting_trajectory_.right_shoulder_roll.clear();
-  lifting_trajectory_.right_elbow.clear();
-  lifting_trajectory_.left_shoulder_pitch.clear();
-  lifting_trajectory_.left_shoulder_roll.clear();
-  lifting_trajectory_.left_elbow.clear();
-  lifting_trajectory_.head_pitch.clear();
-  lifting_trajectory_.head_yaw.clear();
-  lifting_trajectory_.pelvis.clear();
-  lifting_trajectory_.right_foot.clear();
-  lifting_trajectory_.left_foot.clear();
+  if(init_flag_ || trajectory_flag_) // if something is being played, the trajectory is not received.
+    return;
 
-  ROS_INFO_STREAM(msg->right_shoulder_pitch.size());
+  clearLiftingTrajectories();
+
+  //ROS_INFO_STREAM(msg->right_shoulder_pitch.size());
   for (size_t msg_idx = 0; msg_idx < msg->right_shoulder_pitch.size(); msg_idx++)
   {
     lifting_trajectory_.right_shoulder_pitch.push_back(msg->right_shoulder_pitch[msg_idx]);
@@ -263,14 +258,100 @@ void LiftingModule::getLiftingTrajectoryCallback(const lifting_trajectory_msgs::
   }
 }
 
+void LiftingModule::getLiftingJointTrajectoryCallback(const lifting_trajectory_msgs::LiftingJointTrajectory::ConstPtr& msg)
+{
+  if(init_flag_ || trajectory_flag_) // if something is being played, the trajectory is not received.
+    return;
+  
+  clearLiftingTrajectories();
+  for (size_t msg_idx = 0; msg_idx < msg->right_shoulder_pitch.size(); msg_idx++)
+  {
+    lifting_joint_trajectory_.right_shoulder_pitch.push_back(msg->right_shoulder_pitch[msg_idx]);
+    lifting_joint_trajectory_.right_shoulder_roll.push_back(msg->right_shoulder_roll[msg_idx]);
+    lifting_joint_trajectory_.right_elbow.push_back(msg->right_elbow[msg_idx]);
+
+    lifting_joint_trajectory_.left_shoulder_pitch.push_back(msg->left_shoulder_pitch[msg_idx]);
+    lifting_joint_trajectory_.left_shoulder_roll.push_back(msg->left_shoulder_roll[msg_idx]);
+    lifting_joint_trajectory_.left_elbow.push_back(msg->left_elbow[msg_idx]);
+
+    lifting_joint_trajectory_.right_hip_yaw.push_back(msg->right_hip_yaw[msg_idx]);
+    lifting_joint_trajectory_.right_hip_roll.push_back(msg->right_hip_roll[msg_idx]);
+    lifting_joint_trajectory_.right_hip_pitch.push_back(msg->right_hip_pitch[msg_idx]);
+    lifting_joint_trajectory_.right_knee.push_back(msg->right_knee[msg_idx]);
+    lifting_joint_trajectory_.right_ankle_pitch.push_back(msg->right_ankle_pitch[msg_idx]);
+    lifting_joint_trajectory_.right_ankle_roll.push_back(msg->right_ankle_roll[msg_idx]);
+
+    lifting_joint_trajectory_.left_hip_yaw.push_back(msg->left_hip_yaw[msg_idx]);
+    lifting_joint_trajectory_.left_hip_roll.push_back(msg->left_hip_roll[msg_idx]);
+    lifting_joint_trajectory_.left_hip_pitch.push_back(msg->left_hip_pitch[msg_idx]);
+    lifting_joint_trajectory_.left_knee.push_back(msg->left_knee[msg_idx]);
+    lifting_joint_trajectory_.left_ankle_pitch.push_back(msg->left_ankle_pitch[msg_idx]);
+    lifting_joint_trajectory_.left_ankle_roll.push_back(msg->left_ankle_roll[msg_idx]);
+
+    lifting_joint_trajectory_.head_pitch.push_back(msg->head_pitch[msg_idx]);
+    lifting_joint_trajectory_.head_yaw.push_back(msg->head_yaw[msg_idx]);
+  }
+}
+
+void LiftingModule::clearLiftingTrajectories()
+{
+  lifting_trajectory_.right_shoulder_pitch.clear();
+  lifting_trajectory_.right_shoulder_roll.clear();
+  lifting_trajectory_.right_elbow.clear();
+  lifting_trajectory_.left_shoulder_pitch.clear();
+  lifting_trajectory_.left_shoulder_roll.clear();
+  lifting_trajectory_.left_elbow.clear();
+  lifting_trajectory_.head_pitch.clear();
+  lifting_trajectory_.head_yaw.clear();
+  lifting_trajectory_.pelvis.clear();
+  lifting_trajectory_.right_foot.clear();
+  lifting_trajectory_.left_foot.clear();
+
+  lifting_joint_trajectory_.right_shoulder_pitch.clear();
+  lifting_joint_trajectory_.right_shoulder_roll.clear();
+  lifting_joint_trajectory_.right_elbow.clear();
+
+  lifting_joint_trajectory_.left_shoulder_pitch.clear();
+  lifting_joint_trajectory_.left_shoulder_roll.clear();
+  lifting_joint_trajectory_.left_elbow.clear();
+
+  lifting_joint_trajectory_.right_hip_yaw.clear();
+  lifting_joint_trajectory_.right_hip_roll.clear();
+  lifting_joint_trajectory_.right_hip_pitch.clear();
+  lifting_joint_trajectory_.right_knee.clear();
+  lifting_joint_trajectory_.right_ankle_pitch.clear();
+  lifting_joint_trajectory_.right_ankle_roll.clear();
+
+  lifting_joint_trajectory_.left_hip_yaw.clear();
+  lifting_joint_trajectory_.left_hip_roll.clear();
+  lifting_joint_trajectory_.left_hip_pitch.clear();
+  lifting_joint_trajectory_.left_knee.clear();
+  lifting_joint_trajectory_.left_ankle_pitch.clear();
+  lifting_joint_trajectory_.left_ankle_roll.clear();
+
+  lifting_joint_trajectory_.head_yaw.clear();
+  lifting_joint_trajectory_.head_pitch.clear();
+}
+
 void LiftingModule::getLiftingCommandCallback(const std_msgs::String::ConstPtr& msg)
 {
   if (msg->data == "play")
   {
     ROS_INFO_STREAM(msg->data);
     trajectory_idx_ = 0;
-    trajectory_size_ = lifting_trajectory_.right_shoulder_pitch.size();
-    trajectory_flag_ = true;
+
+    if (lifting_trajectory_.right_shoulder_pitch.size() != 0)
+    {
+      trajectory_size_ = lifting_trajectory_.right_shoulder_pitch.size();
+      trajectory_flag_ = true;
+    }
+    else if (lifting_joint_trajectory_.right_shoulder_pitch.size() != 0)
+    { 
+      trajectory_size_ = lifting_joint_trajectory_.right_shoulder_pitch.size();
+      trajectory_flag_ = true;
+    }
+    else
+      trajectory_flag_ = false;
   }
   else if (msg->data == "init")
   {
@@ -315,97 +396,105 @@ void LiftingModule::getLiftingCommandCallback(const std_msgs::String::ConstPtr& 
 
 void LiftingModule::getLiftingTrajectoryAngle(int trajectory_idx)
 {
-  if (lifting_trajectory_.right_shoulder_pitch.size() == 0)
+  if (lifting_trajectory_.right_shoulder_pitch.size() != 0)
+  {
+    double leg_angle[6];
+
+    // right arm
+    joint_angle_[0] = lifting_trajectory_.right_shoulder_pitch[trajectory_idx];
+    joint_angle_[2] = lifting_trajectory_.right_shoulder_roll[trajectory_idx];
+    joint_angle_[4] = lifting_trajectory_.right_elbow[trajectory_idx];
+
+    // left arms
+    joint_angle_[1] = lifting_trajectory_.left_shoulder_pitch[trajectory_idx];
+    joint_angle_[3] = lifting_trajectory_.left_shoulder_roll[trajectory_idx];
+    joint_angle_[5] = lifting_trajectory_.left_elbow[trajectory_idx];
+
+    // head
+    joint_angle_[18] = lifting_trajectory_.head_yaw[trajectory_idx];
+    joint_angle_[19] = lifting_trajectory_.head_pitch[trajectory_idx];
+
+    Eigen::Matrix4d g_to_pelvis = getTransformationXYZQuat(lifting_trajectory_.pelvis[trajectory_idx].position.x,
+                                                           lifting_trajectory_.pelvis[trajectory_idx].position.y,
+                                                           lifting_trajectory_.pelvis[trajectory_idx].position.z,
+                                                           lifting_trajectory_.pelvis[trajectory_idx].orientation.w,
+                                                           lifting_trajectory_.pelvis[trajectory_idx].orientation.x,
+                                                           lifting_trajectory_.pelvis[trajectory_idx].orientation.y,
+                                                           lifting_trajectory_.pelvis[trajectory_idx].orientation.z);
+
+    Eigen::Matrix4d pelvis_to_g = robotis_framework::getInverseTransformation(g_to_pelvis);
+
+    Eigen::Matrix4d g_to_rfoot = getTransformationXYZQuat(lifting_trajectory_.right_foot[trajectory_idx].position.x,
+                                                          lifting_trajectory_.right_foot[trajectory_idx].position.y,
+                                                          lifting_trajectory_.right_foot[trajectory_idx].position.z,
+                                                          lifting_trajectory_.right_foot[trajectory_idx].orientation.w,
+                                                          lifting_trajectory_.right_foot[trajectory_idx].orientation.x,
+                                                          lifting_trajectory_.right_foot[trajectory_idx].orientation.y,
+                                                          lifting_trajectory_.right_foot[trajectory_idx].orientation.z);
+
+    Eigen::Matrix4d g_to_lfoot = getTransformationXYZQuat(lifting_trajectory_.left_foot[trajectory_idx].position.x,
+                                                          lifting_trajectory_.left_foot[trajectory_idx].position.y,
+                                                          lifting_trajectory_.left_foot[trajectory_idx].position.z,
+                                                          lifting_trajectory_.left_foot[trajectory_idx].orientation.w,
+                                                          lifting_trajectory_.left_foot[trajectory_idx].orientation.x,
+                                                          lifting_trajectory_.left_foot[trajectory_idx].orientation.y,
+                                                          lifting_trajectory_.left_foot[trajectory_idx].orientation.z);
+
+    Eigen::Matrix4d rhip_to_rfoot = (mat_rhip_to_pelvis * pelvis_to_g) * g_to_rfoot;
+    Eigen::Matrix4d lhip_to_lfoot = (mat_lhip_to_pelvis * pelvis_to_g) * g_to_lfoot;
+
+    computeRLegInverseKinematics(leg_angle, rhip_to_rfoot);
+
+    joint_angle_[6] = leg_angle[0];
+    joint_angle_[8] = leg_angle[1];
+    joint_angle_[10] = leg_angle[2];
+    joint_angle_[12] = leg_angle[3];
+    joint_angle_[14] = leg_angle[4];
+    joint_angle_[16] = leg_angle[5];
+
+    computeLLegInverseKinematics(leg_angle, lhip_to_lfoot);
+
+    joint_angle_[7] = leg_angle[0];
+    joint_angle_[9] = leg_angle[1];
+    joint_angle_[11] = leg_angle[2];
+    joint_angle_[13] = leg_angle[3];
+    joint_angle_[15] = leg_angle[4];
+    joint_angle_[17] = leg_angle[5];
+  }
+  else if (lifting_joint_trajectory_.right_shoulder_pitch.size() != 0)
+  {
+    // right arm
+    joint_angle_[0] = lifting_joint_trajectory_.right_shoulder_pitch[trajectory_idx];
+    joint_angle_[2] = lifting_joint_trajectory_.right_shoulder_roll[trajectory_idx];
+    joint_angle_[4] = lifting_joint_trajectory_.right_elbow[trajectory_idx];
+
+    // left arms
+    joint_angle_[1] = lifting_joint_trajectory_.left_shoulder_pitch[trajectory_idx];
+    joint_angle_[3] = lifting_joint_trajectory_.left_shoulder_roll[trajectory_idx];
+    joint_angle_[5] = lifting_joint_trajectory_.left_elbow[trajectory_idx];
+
+    // right leg
+    joint_angle_[6]  = lifting_joint_trajectory_.right_hip_yaw[trajectory_idx];
+    joint_angle_[8]  = lifting_joint_trajectory_.right_hip_roll[trajectory_idx];
+    joint_angle_[10] = lifting_joint_trajectory_.right_hip_pitch[trajectory_idx];
+    joint_angle_[12] = lifting_joint_trajectory_.right_knee[trajectory_idx];
+    joint_angle_[14] = lifting_joint_trajectory_.right_ankle_pitch[trajectory_idx];
+    joint_angle_[16] = lifting_joint_trajectory_.right_ankle_roll[trajectory_idx];
+
+    // left leg
+    joint_angle_[7]  = lifting_joint_trajectory_.left_hip_yaw[trajectory_idx];
+    joint_angle_[9]  = lifting_joint_trajectory_.left_hip_roll[trajectory_idx];
+    joint_angle_[11] = lifting_joint_trajectory_.left_hip_pitch[trajectory_idx];
+    joint_angle_[13] = lifting_joint_trajectory_.left_knee[trajectory_idx];
+    joint_angle_[15] = lifting_joint_trajectory_.left_ankle_pitch[trajectory_idx];
+    joint_angle_[17] = lifting_joint_trajectory_.left_ankle_roll[trajectory_idx];
+
+    // head
+    joint_angle_[18] = lifting_joint_trajectory_.head_yaw[trajectory_idx];
+    joint_angle_[19] = lifting_joint_trajectory_.head_pitch[trajectory_idx];
+  }
+  else
     return;
-  
-  double leg_angle[6];
-
-  //right arm
-  joint_angle_[0] = lifting_trajectory_.right_shoulder_pitch[trajectory_idx];
-  joint_angle_[2] = lifting_trajectory_.right_shoulder_roll[trajectory_idx];
-  joint_angle_[4] = lifting_trajectory_.right_elbow[trajectory_idx];
-
-  //left arms
-  joint_angle_[1] = lifting_trajectory_.left_shoulder_pitch[trajectory_idx];
-  joint_angle_[3] = lifting_trajectory_.left_shoulder_roll[trajectory_idx];
-  joint_angle_[5] = lifting_trajectory_.left_elbow[trajectory_idx];
-
-  //head
-  joint_angle_[18] = lifting_trajectory_.head_yaw[trajectory_idx];
-  joint_angle_[19] = lifting_trajectory_.head_pitch[trajectory_idx];
-
-
-  Eigen::Matrix4d g_to_pelvis 
-    = getTransformationXYZQuat(lifting_trajectory_.pelvis[trajectory_idx].position.x,
-    lifting_trajectory_.pelvis[trajectory_idx].position.y,
-    lifting_trajectory_.pelvis[trajectory_idx].position.z,
-    lifting_trajectory_.pelvis[trajectory_idx].orientation.w,
-    lifting_trajectory_.pelvis[trajectory_idx].orientation.x,
-    lifting_trajectory_.pelvis[trajectory_idx].orientation.y,
-    lifting_trajectory_.pelvis[trajectory_idx].orientation.z);
-
-  Eigen::Matrix4d pelvis_to_g = robotis_framework::getInverseTransformation(g_to_pelvis);
-
-  Eigen::Matrix4d g_to_rfoot
-    = getTransformationXYZQuat(lifting_trajectory_.right_foot[trajectory_idx].position.x,
-    lifting_trajectory_.right_foot[trajectory_idx].position.y,
-    lifting_trajectory_.right_foot[trajectory_idx].position.z,
-    lifting_trajectory_.right_foot[trajectory_idx].orientation.w,
-    lifting_trajectory_.right_foot[trajectory_idx].orientation.x,
-    lifting_trajectory_.right_foot[trajectory_idx].orientation.y,
-    lifting_trajectory_.right_foot[trajectory_idx].orientation.z);
-
-  Eigen::Matrix4d g_to_lfoot
-    = getTransformationXYZQuat(lifting_trajectory_.left_foot[trajectory_idx].position.x,
-    lifting_trajectory_.left_foot[trajectory_idx].position.y,
-    lifting_trajectory_.left_foot[trajectory_idx].position.z,
-    lifting_trajectory_.left_foot[trajectory_idx].orientation.w,
-    lifting_trajectory_.left_foot[trajectory_idx].orientation.x,
-    lifting_trajectory_.left_foot[trajectory_idx].orientation.y,
-    lifting_trajectory_.left_foot[trajectory_idx].orientation.z);
-
-  Eigen::Matrix4d rhip_to_rfoot = (mat_rhip_to_pelvis*pelvis_to_g)*g_to_rfoot;
-  Eigen::Matrix4d lhip_to_lfoot = (mat_lhip_to_pelvis*pelvis_to_g)*g_to_lfoot;
-  
-  computeRLegInverseKinematics(leg_angle, rhip_to_rfoot);
-
-  joint_angle_[6] = leg_angle[0];
-  joint_angle_[8] = leg_angle[1];
-  joint_angle_[10] = leg_angle[2];
-  joint_angle_[12] = leg_angle[3];
-  joint_angle_[14] = leg_angle[4];
-  joint_angle_[16] = leg_angle[5];
-
-
-  computeLLegInverseKinematics(leg_angle, lhip_to_lfoot);
-
-  joint_angle_[7] = leg_angle[0];
-  joint_angle_[9] = leg_angle[1];
-  joint_angle_[11] = leg_angle[2];
-  joint_angle_[13] = leg_angle[3];
-  joint_angle_[15] = leg_angle[4];
-  joint_angle_[17] = leg_angle[5];
-
-  // ROS_INFO_STREAM(joint_angle_[0]);
-  // ROS_INFO_STREAM(joint_angle_[1]);
-  // ROS_INFO_STREAM(joint_angle_[2]);
-  // ROS_INFO_STREAM(joint_angle_[3]);
-  // ROS_INFO_STREAM(joint_angle_[4]);
-  // ROS_INFO_STREAM(joint_angle_[5]);
-  // ROS_INFO_STREAM(joint_angle_[6]);
-  // ROS_INFO_STREAM(joint_angle_[7]);
-  // ROS_INFO_STREAM(joint_angle_[8]);
-  // ROS_INFO_STREAM(joint_angle_[9]);
-  // ROS_INFO_STREAM(joint_angle_[10]);
-  // ROS_INFO_STREAM(joint_angle_[11]);
-  // ROS_INFO_STREAM(joint_angle_[12]);
-  // ROS_INFO_STREAM(joint_angle_[13]);
-  // ROS_INFO_STREAM(joint_angle_[14]);
-  // ROS_INFO_STREAM(joint_angle_[15]);
-  // ROS_INFO_STREAM(joint_angle_[16]);
-  // ROS_INFO_STREAM(joint_angle_[17]);
-  // ROS_INFO_STREAM(joint_angle_[18]);
-  // ROS_INFO_STREAM(joint_angle_[19]);
 }
 
 void LiftingModule::onModuleEnable()
