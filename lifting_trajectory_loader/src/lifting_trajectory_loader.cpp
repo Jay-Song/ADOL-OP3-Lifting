@@ -131,7 +131,7 @@ bool loadTrajectory(std::string &file_path)
   }
   else
   {
-    std::cout << "Invalid the number of the numbers in the first line" << std::endl; 
+    std::cout << "Invalid the number of the numbers in the first line: " << count << std::endl; 
     return false;
   }
 

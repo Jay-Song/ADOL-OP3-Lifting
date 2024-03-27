@@ -177,38 +177,109 @@ void LiftingModule::process(std::map<std::string, robotis_framework::Dynamixel *
   if (trajectory_flag_)
   {
     getLiftingTrajectoryAngle(trajectory_idx_);
+
+    double p_gain = 1.0; 
     //right arm
-    result_["r_sho_pitch"]->goal_position_   = joint_angle_[0];
-    result_["r_sho_roll"]->goal_position_    = joint_angle_[2];
-    result_["r_el"]->goal_position_          = joint_angle_[4];
+    result_["r_sho_pitch"]->goal_position_   = joint_angle_[0] + p_gain*(joint_angle_[0] - dxls["r_sho_pitch"]->dxl_state_->present_position_ );
+    result_["r_sho_roll"]->goal_position_    = joint_angle_[2] + 0.0*(joint_angle_[2] - dxls["r_sho_roll"]->dxl_state_->present_position_  );
+    result_["r_el"]->goal_position_          = joint_angle_[4] + 0.0*(joint_angle_[4] - dxls["r_el"]->dxl_state_->present_position_        );
 
     // left arm
-    result_["l_sho_pitch"]->goal_position_   = joint_angle_[1];
-    result_["l_sho_roll"]->goal_position_    = joint_angle_[3];
-    result_["l_el"]->goal_position_          = joint_angle_[5];   
+    result_["l_sho_pitch"]->goal_position_   = joint_angle_[1] + p_gain*(joint_angle_[1] - dxls["l_sho_pitch"]->dxl_state_->present_position_);
+    result_["l_sho_roll"]->goal_position_    = joint_angle_[3] + 0.0*(joint_angle_[3] - dxls["l_sho_roll"]->dxl_state_->present_position_ );
+    result_["l_el"]->goal_position_          = joint_angle_[5] + 0.0*(joint_angle_[5] - dxls["l_el"]->dxl_state_->present_position_       );
 
     // right leg
-    result_["r_hip_yaw"]->goal_position_     = joint_angle_[6];
-    result_["r_hip_roll"]->goal_position_    = joint_angle_[8];
-    result_["r_hip_pitch"]->goal_position_   = joint_angle_[10];
-    result_["r_knee"]->goal_position_        = joint_angle_[12];
-    result_["r_ank_pitch"]->goal_position_   = joint_angle_[14];
-    result_["r_ank_roll"]->goal_position_    = joint_angle_[16];
+    result_["r_hip_yaw"]->goal_position_     = joint_angle_[6]  + 0.0*(joint_angle_[6]  - dxls["r_hip_yaw"]->dxl_state_->present_position_   );
+    result_["r_hip_roll"]->goal_position_    = joint_angle_[8]  + 0.0*(joint_angle_[8]  - dxls["r_hip_roll"]->dxl_state_->present_position_  );
+    result_["r_hip_pitch"]->goal_position_   = joint_angle_[10] + p_gain*(joint_angle_[10] - dxls["r_hip_pitch"]->dxl_state_->present_position_ );
+    result_["r_knee"]->goal_position_        = joint_angle_[12] + p_gain*(joint_angle_[12] - dxls["r_knee"]->dxl_state_->present_position_      );
+    result_["r_ank_pitch"]->goal_position_   = joint_angle_[14] + p_gain*(joint_angle_[14] - dxls["r_ank_pitch"]->dxl_state_->present_position_ );
+    result_["r_ank_roll"]->goal_position_    = joint_angle_[16] + 0.0*(joint_angle_[16] - dxls["r_ank_roll"]->dxl_state_->present_position_  );
 
     // left leg
-    result_["l_hip_yaw"]->goal_position_     = joint_angle_[7];
-    result_["l_hip_roll"]->goal_position_    = joint_angle_[9];
-    result_["l_hip_pitch"]->goal_position_   = joint_angle_[11];
-    result_["l_knee"]->goal_position_        = joint_angle_[13]; 
-    result_["l_ank_pitch"]->goal_position_   = joint_angle_[15];
-    result_["l_ank_roll"]->goal_position_    = joint_angle_[17];
+    result_["l_hip_yaw"]->goal_position_     = joint_angle_[7]  + 0.0*(joint_angle_[7]  - dxls["l_hip_yaw"]->dxl_state_->present_position_   );
+    result_["l_hip_roll"]->goal_position_    = joint_angle_[9]  + 0.0*(joint_angle_[9]  - dxls["l_hip_roll"]->dxl_state_->present_position_  );
+    result_["l_hip_pitch"]->goal_position_   = joint_angle_[11] + p_gain*(joint_angle_[11] - dxls["l_hip_pitch"]->dxl_state_->present_position_);
+    result_["l_knee"]->goal_position_        = joint_angle_[13] + p_gain*(joint_angle_[13] - dxls["l_knee"]->dxl_state_->present_position_     );
+    result_["l_ank_pitch"]->goal_position_   = joint_angle_[15] + p_gain*(joint_angle_[15] - dxls["l_ank_pitch"]->dxl_state_->present_position_);
+    result_["l_ank_roll"]->goal_position_    = joint_angle_[17] + 0.0*(joint_angle_[17] - dxls["l_ank_roll"]->dxl_state_->present_position_ );
 
     // head
-    result_["head_pan"]->goal_position_      = joint_angle_[18];
-    result_["head_tilt"]->goal_position_     = joint_angle_[19];
+    result_["head_pan"]->goal_position_      = joint_angle_[18] + 0.0*(joint_angle_[18] - dxls["head_pan"]->dxl_state_->present_position_  );
+    result_["head_tilt"]->goal_position_     = joint_angle_[19] + 0.0*(joint_angle_[19] - dxls["head_tilt"]->dxl_state_->present_position_ );
     trajectory_idx_++;
     //trajectory_idx_++;
     //ROS_INFO_STREAM (trajectory_idx_ << " " << trajectory_size_);
+
+    std::cout << 
+    joint_angle_[0]  << " " <<
+    joint_angle_[2]  << " " <<
+    joint_angle_[4]  << " " <<
+    joint_angle_[1]  << " " <<
+    joint_angle_[3]  << " " <<
+    joint_angle_[5]  << " " <<
+    joint_angle_[6]  << " " <<
+    joint_angle_[8]  << " " <<
+    joint_angle_[10] << " " <<
+    joint_angle_[12] << " " <<
+    joint_angle_[14] << " " <<
+    joint_angle_[16] << " " <<
+    joint_angle_[7]  << " " <<
+    joint_angle_[9]  << " " <<
+    joint_angle_[11] << " " <<
+    joint_angle_[13] << " " <<
+    joint_angle_[15] << " " <<
+    joint_angle_[17] << " " <<
+    joint_angle_[18] << " " <<
+    joint_angle_[19] << " " <<
+    
+    dxls["r_sho_pitch"]->dxl_state_->present_position_   << " " <<
+    dxls["r_sho_roll"]->dxl_state_->present_position_    << " " <<
+    dxls["r_el"]->dxl_state_->present_position_          << " " <<
+    dxls["l_sho_pitch"]->dxl_state_->present_position_   << " " <<
+    dxls["l_sho_roll"]->dxl_state_->present_position_    << " " <<
+    dxls["l_el"]->dxl_state_->present_position_          << " " <<
+    dxls["r_hip_yaw"]->dxl_state_->present_position_     << " " <<
+    dxls["r_hip_roll"]->dxl_state_->present_position_    << " " <<
+    dxls["r_hip_pitch"]->dxl_state_->present_position_   << " " <<
+    dxls["r_knee"]->dxl_state_->present_position_        << " " <<
+    dxls["r_ank_pitch"]->dxl_state_->present_position_   << " " <<
+    dxls["r_ank_roll"]->dxl_state_->present_position_    << " " <<
+    dxls["l_hip_yaw"]->dxl_state_->present_position_     << " " <<
+    dxls["l_hip_roll"]->dxl_state_->present_position_    << " " <<
+    dxls["l_hip_pitch"]->dxl_state_->present_position_   << " " <<
+    dxls["l_knee"]->dxl_state_->present_position_        << " " <<
+    dxls["l_ank_pitch"]->dxl_state_->present_position_   << " " <<
+    dxls["l_ank_roll"]->dxl_state_->present_position_    << " " <<
+    dxls["head_pan"]->dxl_state_->present_position_      << " " <<
+    dxls["head_tilt"]->dxl_state_->present_position_     << " " <<
+      
+    (int16_t) dxls["r_sho_pitch"]->dxl_state_->bulk_read_table_["present_current"]   << " " <<
+    (int16_t) dxls["r_sho_roll"]->dxl_state_->bulk_read_table_["present_current"]    << " " <<
+    (int16_t) dxls["r_el"]->dxl_state_->bulk_read_table_["present_current"]          << " " <<
+    (int16_t) dxls["l_sho_pitch"]->dxl_state_->bulk_read_table_["present_current"]   << " " <<
+    (int16_t) dxls["l_sho_roll"]->dxl_state_->bulk_read_table_["present_current"]    << " " <<
+    (int16_t) dxls["l_el"]->dxl_state_->bulk_read_table_["present_current"]          << " " <<
+    (int16_t) dxls["r_hip_yaw"]->dxl_state_->bulk_read_table_["present_current"]     << " " <<
+    (int16_t) dxls["r_hip_roll"]->dxl_state_->bulk_read_table_["present_current"]    << " " <<
+    (int16_t) dxls["r_hip_pitch"]->dxl_state_->bulk_read_table_["present_current"]   << " " <<
+    (int16_t) dxls["r_knee"]->dxl_state_->bulk_read_table_["present_current"]        << " " <<
+    (int16_t) dxls["r_ank_pitch"]->dxl_state_->bulk_read_table_["present_current"]   << " " <<
+    (int16_t) dxls["r_ank_roll"]->dxl_state_->bulk_read_table_["present_current"]    << " " <<
+    (int16_t) dxls["l_hip_yaw"]->dxl_state_->bulk_read_table_["present_current"]     << " " <<
+    (int16_t) dxls["l_hip_roll"]->dxl_state_->bulk_read_table_["present_current"]    << " " <<
+    (int16_t) dxls["l_hip_pitch"]->dxl_state_->bulk_read_table_["present_current"]   << " " <<
+    (int16_t) dxls["l_knee"]->dxl_state_->bulk_read_table_["present_current"]        << " " <<
+    (int16_t) dxls["l_ank_pitch"]->dxl_state_->bulk_read_table_["present_current"]   << " " <<
+    (int16_t) dxls["l_ank_roll"]->dxl_state_->bulk_read_table_["present_current"]    << " " <<
+    (int16_t) dxls["head_pan"]->dxl_state_->bulk_read_table_["present_current"]      << " " <<
+    (int16_t) dxls["head_tilt"]->dxl_state_->bulk_read_table_["present_current"]     << " " << 
+      
+    sensors["roll"] << " " << 
+    sensors["pitch"] << " " << 
+    sensors["yaw"] << " " << std::endl;
+
     if (trajectory_idx_ >= trajectory_size_)
       trajectory_flag_ = false;
   }
