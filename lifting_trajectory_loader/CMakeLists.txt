@@ -32,7 +32,7 @@ find_package(Eigen3 REQUIRED)
 # Declare catkin specific configuration to be passed to dependent projects
 ################################################################################
 catkin_package(
-  INCLUDE_DIRS include
+#  INCLUDE_DIRS include
   CATKIN_DEPENDS roscpp std_msgs robotis_math lifting_trajectory_msgs
   DEPENDS EIGEN3
 )
@@ -41,7 +41,7 @@ catkin_package(
 # Build
 ################################################################################
 include_directories(
-  include
+#  include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
 )
